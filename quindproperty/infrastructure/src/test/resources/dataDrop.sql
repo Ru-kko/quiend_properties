@@ -1,0 +1,3 @@
+DELETE FROM Rent;
+DELETE FROM Property;
+DELETE FROM "User";
