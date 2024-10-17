@@ -15,4 +15,6 @@ public interface PropertyService {
     Property save(PropertyRegistry registry) throws PropertyError;
 
     Property update(UUID id, PropertyRegistry newData) throws PropertyError;
+
+    Property toggleAvailability(UUID id) throws PropertyError;
 }

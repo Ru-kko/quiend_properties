@@ -2,8 +2,10 @@ package com.store.infrastructure.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -259,5 +261,48 @@ public class PropertyServiceImplTest {
     assertEquals(updatedProperty.getImg(), fromDb.get("img"));
     assertEquals(updatedProperty.getActive(), fromDb.get("active"));
     assertEquals(updatedProperty.getAvailable(), fromDb.get("available"));
+  }
+
+  @Test
+  void testToggleAvailabilityPropertyFound() {
+     UUID propertyId = UUID.fromString("48a234c4-ef02-4f96-8a04-82307b1d31a4"); // Luxury Apartment Medellin
+
+    Property toggledProperty = assertDoesNotThrow(() -> propertyService.toggleAvailability(propertyId));
+
+    assertNotNull(toggledProperty);
+    assertFalse(toggledProperty.getAvailable());
+
+    var fromDb = jdbcTemplate.queryForObject("SELECT available FROM Property WHERE propertyId = ?",Boolean.class, propertyId);
+    assertEquals(false, fromDb);
+
+    toggledProperty = assertDoesNotThrow(() -> propertyService.toggleAvailability(propertyId));
+    assertTrue(toggledProperty.getAvailable());
+
+    fromDb = jdbcTemplate.queryForObject("SELECT available FROM Property WHERE propertyId = ?",Boolean.class, propertyId);
+    assertEquals(true, fromDb);
+  }
+
+  @Test
+  void testToggleAvailabilityPropertyNotFound() {
+    UUID nonExistentId = UUID.randomUUID();
+
+    PropertyError exception = assertThrows(PropertyError.class, () -> {
+        propertyService.toggleAvailability(nonExistentId);
+    });
+
+    assertEquals(404, exception.getCode());
+  }
+
+  @Test
+  void testToggleAvailabilityPropertyInactive() {
+    UUID inactivePropertyId = UUID.fromString("c8447bdf-559f-465b-9333-2c2dc38addbf");
+
+    jdbcTemplate.update("UPDATE Property SET active = FALSE WHERE propertyId = ?", inactivePropertyId);
+
+    PropertyError exception = assertThrows(PropertyError.class, () -> {
+        propertyService.toggleAvailability(inactivePropertyId);
+    });
+
+    assertEquals(404, exception.getCode());
   }
 }

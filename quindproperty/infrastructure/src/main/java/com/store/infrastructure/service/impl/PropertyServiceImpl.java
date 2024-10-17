@@ -92,6 +92,22 @@ class PropertyServiceImpl implements PropertyService {
         return propertyRepository.save(modified);
     }
 
+    @Override
+    public Property toggleAvailability(UUID id) throws PropertyError {
+        var originalOpt = propertyRepository.findById(id);
+
+        if (originalOpt.isEmpty() || !originalOpt.get().getActive())
+            throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
+
+        var original = originalOpt.get();
+
+        original.setAvailable(!original.getAvailable());
+
+        propertyRepository.save(original);
+
+        return original;
+    }
+
     /**
      * Checks if is repeated name error
      * ! this only works on postgre
