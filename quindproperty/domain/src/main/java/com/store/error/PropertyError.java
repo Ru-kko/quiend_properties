@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public class PropertyError extends Exception {
-  private Integer code;
-  private String status;
+  private final Integer code;
+  private final String status;
 
 
   public PropertyError(String message, Integer code, String status) {

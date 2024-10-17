@@ -27,7 +27,7 @@ import com.store.error.PropertyError;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Sql(scripts = { "/dataIngest.sql" }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = { "/dataDrop.sql" }, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-public class PropertyServiceImplTest {
+class PropertyServiceImplTest {
   @Autowired
   private JdbcTemplate jdbcTemplate;
   @Autowired
@@ -67,15 +67,14 @@ public class PropertyServiceImplTest {
   }
 
   // _____________________ transform _______________________________
+  @Test
   void transformNullNameThrowsNullDataError() {
     PropertyRegistry dto = new PropertyRegistry();
     dto.setImage("image.jpg");
     dto.setLocation(UUID.randomUUID());
     dto.setPrice(new BigDecimal("1000000"));
 
-    NullDataError exception = assertThrows(NullDataError.class, () -> {
-      propertyService.transform(dto);
-    });
+    NullDataError exception = assertThrows(NullDataError.class, () -> propertyService.transform(dto));
     assertEquals("Not provided name", exception.getMessage());
   }
 
@@ -86,9 +85,7 @@ public class PropertyServiceImplTest {
     dto.setLocation(UUID.randomUUID());
     dto.setPrice(new BigDecimal("1000000"));
 
-    NullDataError exception = assertThrows(NullDataError.class, () -> {
-      propertyService.transform(dto);
-    });
+    NullDataError exception = assertThrows(NullDataError.class, () -> propertyService.transform(dto));
     assertEquals("Not provided image", exception.getMessage());
   }
 
@@ -99,9 +96,7 @@ public class PropertyServiceImplTest {
     dto.setImage("image.jpg");
     dto.setPrice(new BigDecimal("1000000"));
 
-    NullDataError exception = assertThrows(NullDataError.class, () -> {
-      propertyService.transform(dto);
-    });
+    NullDataError exception = assertThrows(NullDataError.class, () -> propertyService.transform(dto));
     assertEquals("Not provided valid location id", exception.getMessage());
   }
 
@@ -113,9 +108,7 @@ public class PropertyServiceImplTest {
     dto.setLocation(UUID.randomUUID());
     dto.setPrice(new BigDecimal("1000000"));
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-      propertyService.transform(dto);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.transform(dto));
     assertEquals("Not found city with id " + dto.getLocation().toString(), exception.getMessage());
   }
 
@@ -127,9 +120,7 @@ public class PropertyServiceImplTest {
     dto.setLocation(UUID.fromString("a4b2c9d7-258e-4f2f-a1ad-1c7f5f2a9d75")); // Bogota
     dto.setPrice(new BigDecimal("1000000"));
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-      propertyService.transform(dto);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.transform(dto));
     assertEquals("Price must be > 2'000.000 in this city", exception.getMessage());
   }
 
@@ -189,12 +180,10 @@ public class PropertyServiceImplTest {
 
   // ___________________ Update _________________________________
   @Test
-  void testUpodateNotFound() {
+  void testUpdateNotFound() {
     UUID nonExistentId = UUID.randomUUID();
     PropertyRegistry newData = new PropertyRegistry();
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-        propertyService.update(nonExistentId, newData);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.update(nonExistentId, newData));
 
     assertEquals(404, exception.getCode());
   }
@@ -205,9 +194,7 @@ public class PropertyServiceImplTest {
     PropertyRegistry newData = new PropertyRegistry();
     newData.setPrice(new BigDecimal(1100000));
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-        propertyService.update(rentedPropertyId, newData);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.update(rentedPropertyId, newData));
     assertEquals(400, exception.getCode());
   }
 
@@ -217,9 +204,7 @@ public class PropertyServiceImplTest {
     PropertyRegistry newData = new PropertyRegistry();
     newData.setLocation(UUID.fromString("c21d6f5e-7b58-4d81-9fc8-91e7c69d6e9a"));
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-      propertyService.update(rentedPropertyId, newData);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.update(rentedPropertyId, newData));
     assertEquals(400, exception.getCode());
   }
 
@@ -287,9 +272,7 @@ public class PropertyServiceImplTest {
   void testToggleAvailabilityPropertyNotFound() {
     UUID nonExistentId = UUID.randomUUID();
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-        propertyService.toggleAvailability(nonExistentId);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.toggleAvailability(nonExistentId));
 
     assertEquals(404, exception.getCode());
   }
@@ -300,9 +283,7 @@ public class PropertyServiceImplTest {
 
     jdbcTemplate.update("UPDATE Property SET active = FALSE WHERE propertyId = ?", inactivePropertyId);
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-        propertyService.toggleAvailability(inactivePropertyId);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.toggleAvailability(inactivePropertyId));
 
     assertEquals(404, exception.getCode());
   }
@@ -326,9 +307,7 @@ public class PropertyServiceImplTest {
   void testDeleteOldProperty() {
     UUID oldPropertyId = UUID.fromString("48a234c4-ef02-4f96-8a04-82307b1d31a4"); // Luxury Apartment Medellin
 
-    PropertyError exception = assertThrows(PropertyError.class, () -> {
-        propertyService.delete(oldPropertyId);
-    });
+    PropertyError exception = assertThrows(PropertyError.class, () -> propertyService.delete(oldPropertyId));
 
     assertEquals(400, exception.getCode());
   }

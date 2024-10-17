@@ -10,6 +10,7 @@ import com.store.infrastructure.persistence.CityRepository;
 import com.store.infrastructure.persistence.PropertyRepository;
 import com.store.infrastructure.service.PropertyService;
 
+import lombok.AllArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,12 +25,10 @@ import java.util.UUID;
 import java.util.Calendar;
 
 @Service
+@AllArgsConstructor(onConstructor = @__(@Autowired))
 class PropertyServiceImpl implements PropertyService {
-    @Autowired
     private PropertyRepository propertyRepository;
-    @Autowired
     private InfraProperties props;
-    @Autowired
     private CityRepository cityRepository;
 
     @Override
@@ -65,12 +64,12 @@ class PropertyServiceImpl implements PropertyService {
     public Property update(UUID id, PropertyRegistry newData) throws PropertyError {
         var originalOpt = propertyRepository.findById(id);
 
-        if (originalOpt.isEmpty() || !originalOpt.get().getActive())
+        if (originalOpt.isEmpty() || Boolean.TRUE.equals(!originalOpt.get().getActive()))
             throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
 
         var original = originalOpt.get();
 
-        if (!original.getAvailable() && newData.getPrice() != null && !newData.getPrice().equals(original.getPrice()))
+        if (Boolean.TRUE.equals(!original.getAvailable() && newData.getPrice() != null) && !newData.getPrice().equals(original.getPrice()))
             throw new PropertyError("Cant change the price of a currently rented property", 400, "BadRequest");
         if (!original.getAvailable() && newData.getLocation() != null
                 && !newData.getLocation().equals(original.getLocation().getCityId()))
@@ -104,7 +103,7 @@ class PropertyServiceImpl implements PropertyService {
     public Property toggleAvailability(UUID id) throws PropertyError {
         var originalOpt = propertyRepository.findById(id);
 
-        if (originalOpt.isEmpty() || !originalOpt.get().getActive())
+        if (originalOpt.isEmpty() || Boolean.TRUE.equals(!originalOpt.get().getActive()))
             throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
 
         var original = originalOpt.get();
@@ -119,12 +118,12 @@ class PropertyServiceImpl implements PropertyService {
     @Override
     public void delete(UUID id) throws PropertyError {
         var originalOpt = propertyRepository.findById(id);
-        if (originalOpt.isEmpty() || !originalOpt.get().getActive())
+        if (originalOpt.isEmpty() || Boolean.TRUE.equals(!originalOpt.get().getActive()))
             throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
         
 
         var original = originalOpt.get();
-        if (!original.getAvailable())
+        if (Boolean.FALSE.equals(original.getAvailable()))
             throw new PropertyError("Cant delete rented property", 400, "BadRequest");
 
         var dateCreated = Calendar.getInstance();
@@ -147,10 +146,8 @@ class PropertyServiceImpl implements PropertyService {
 
     /**
      * Checks if is repeated name error
-     * ! this only works on postgre
+     * ! this only works on postgres
      * 
-     * @param e
-     * @return
      */
     private void isDuplicateNameViolation(DataIntegrityViolationException e) throws PropertyError {
         Throwable rootCause = e.getCause();
@@ -171,8 +168,6 @@ class PropertyServiceImpl implements PropertyService {
     }
 
     Property transform(PropertyRegistry dto, final Property base) throws PropertyError {
-        Property res = base;
-
         if (dto.getName() == null)
             throw new NullDataError("Not provided name");
         if (dto.getImage() == null)
@@ -196,11 +191,11 @@ class PropertyServiceImpl implements PropertyService {
                 && dto.getPrice().compareTo(new BigDecimal(2000000)) < 1)
             throw new PropertyError("Price must be > 2'000.000 in this city", 400, "BadRequest");
 
-        res.setImg(dto.getImage());
-        res.setLocation(city);
-        res.setPrice(dto.getPrice());
-        res.setName(dto.getName());
+        base.setImg(dto.getImage());
+        base.setLocation(city);
+        base.setPrice(dto.getPrice());
+        base.setName(dto.getName());
 
-        return res;
+        return base;
     }
 }

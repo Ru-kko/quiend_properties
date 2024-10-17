@@ -2,9 +2,9 @@ package com.store.error;
 
 import lombok.Getter;
 
+@Getter
 public class NullDataError extends PropertyError {
-  @Getter
-  private final String Name = "MissingData";
+  private final String name = "MissingData";
 
   public NullDataError(String message) {
     super(message, 400, "BadRequest");
