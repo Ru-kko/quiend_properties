@@ -22,11 +22,11 @@ public class Rent {
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
-    private User userID;
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "propertyId", nullable = false)
-    private Property city;
+    private Property property;
 
     @Column(nullable = false)
     @Temporal(TemporalType.DATE)

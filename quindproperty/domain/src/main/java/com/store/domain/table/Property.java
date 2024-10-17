@@ -30,7 +30,7 @@ public class Property {
     @ManyToOne
     @JoinColumn(name = "cityId", nullable = false)
     @Setter
-    private City Location;
+    private City location;
 
     @Column(nullable = false)
     @Setter
