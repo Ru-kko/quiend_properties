@@ -105,6 +105,7 @@ class PropertyServiceImpl implements PropertyService {
 
         res.setImg(dto.getImage());
         res.setLocation(city);
+        res.setPrice(dto.getPrice());
         res.setName(dto.getName());
 
         return res;

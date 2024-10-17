@@ -76,7 +76,7 @@ public class PropertyServiceImplTest {
   }
 
   @Test
-  public void transformNullImageThrowsNullDataError() {
+  void transformNullImageThrowsNullDataError() {
     PropertyRegistry dto = new PropertyRegistry();
     dto.setName("Test Property");
     dto.setLocation(UUID.randomUUID());
@@ -89,7 +89,7 @@ public class PropertyServiceImplTest {
   }
 
   @Test
-  public void transformNullLocationThrowsNullDataError() {
+  void transformNullLocationThrowsNullDataError() {
     PropertyRegistry dto = new PropertyRegistry();
     dto.setName("Test Property");
     dto.setImage("image.jpg");
@@ -102,7 +102,7 @@ public class PropertyServiceImplTest {
   }
 
   @Test
-  public void transformNonExistentCityThrowsPropertyError() {
+  void transformNonExistentCityThrowsPropertyError() {
     PropertyRegistry dto = new PropertyRegistry();
     dto.setName("Test Property");
     dto.setImage("image.jpg");
@@ -116,7 +116,7 @@ public class PropertyServiceImplTest {
   }
 
   @Test
-  public void transformLowPriceInBogotaThrowsPropertyError() {
+  void transformLowPriceInBogotaThrowsPropertyError() {
     PropertyRegistry dto = new PropertyRegistry();
     dto.setName("Test Property");
     dto.setImage("image.jpg");
@@ -130,18 +130,18 @@ public class PropertyServiceImplTest {
   }
 
   @Test
-  public void testTransform_ValidInput_ReturnsProperty() throws PropertyError {
+  void testTransformValidInputReturnsProperty() throws PropertyError {
     PropertyRegistry dto = new PropertyRegistry();
     dto.setName("Test Property");
     dto.setImage("image.jpg");
     dto.setLocation(UUID.fromString("a4b2c9d7-258e-4f2f-a1ad-1c7f5f2a9d75")); // Bogota
     dto.setPrice(new BigDecimal("2000001"));
 
-
     Property result = propertyService.transform(dto);
     assertNotNull(result);
     assertEquals(dto.getName(), result.getName());
     assertEquals(dto.getImage(), result.getImg());
+    assertEquals(dto.getPrice(), result.getPrice());
     assertEquals("Bogota", result.getLocation().getName());
   }
 }
