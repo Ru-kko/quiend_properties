@@ -1,8 +1,4 @@
-package com.store.dto;
-
-import java.util.UUID;
-
-import com.store.domain.Role;
+package com.store.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,9 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserClaims {
-  private UUID userId;
+public class UserRegistry {
   private String email;
+  private String password;
+  private String firstName;
   private String lastName;
-  private Role role;
+  private Integer age;
 }

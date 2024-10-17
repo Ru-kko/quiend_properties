@@ -1,4 +1,4 @@
-package com.store.error;
+package com.store.domain.error;
 
 import lombok.Getter;
 

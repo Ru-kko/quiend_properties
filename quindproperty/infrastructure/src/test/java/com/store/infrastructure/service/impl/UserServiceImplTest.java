@@ -12,11 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.jdbc.Sql;
 
-import com.store.dto.UserClaims;
-import com.store.dto.UserRegistry;
-import com.store.error.NotFoundError;
-import com.store.error.NullDataError;
-import com.store.error.PropertyError;
+import com.store.domain.dto.UserClaims;
+import com.store.domain.dto.UserRegistry;
+import com.store.domain.error.NotFoundError;
+import com.store.domain.error.NullDataError;
+import com.store.domain.error.PropertyError;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

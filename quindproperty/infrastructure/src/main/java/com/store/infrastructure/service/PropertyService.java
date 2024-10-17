@@ -1,8 +1,8 @@
 package com.store.infrastructure.service;
 
 import com.store.domain.table.Property;
-import com.store.dto.PropertyRegistry;
-import com.store.error.PropertyError;
+import com.store.domain.dto.PropertyRegistry;
+import com.store.domain.error.PropertyError;
 
 import org.springframework.data.domain.Page;
 

@@ -1,4 +1,4 @@
-package com.store.dto;
+package com.store.domain.dto;
 
 import java.math.BigDecimal;
 import java.util.UUID;

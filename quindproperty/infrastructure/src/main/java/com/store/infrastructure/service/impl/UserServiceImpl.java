@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 
 import com.store.domain.Role;
 import com.store.domain.table.User;
-import com.store.dto.UserClaims;
-import com.store.dto.UserRegistry;
-import com.store.error.NotFoundError;
-import com.store.error.NullDataError;
-import com.store.error.PropertyError;
+import com.store.domain.dto.UserClaims;
+import com.store.domain.dto.UserRegistry;
+import com.store.domain.error.NotFoundError;
+import com.store.domain.error.NullDataError;
+import com.store.domain.error.PropertyError;
 import com.store.infrastructure.persistence.UserRepository;
 import com.store.infrastructure.service.UserService;
 

@@ -1,4 +1,4 @@
-package com.store.error;
+package com.store.domain.error;
 
 public class NullDataError extends PropertyError {
   public NullDataError(String message) {

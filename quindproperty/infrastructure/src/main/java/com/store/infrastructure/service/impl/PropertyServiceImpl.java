@@ -2,10 +2,10 @@ package com.store.infrastructure.service.impl;
 
 import com.store.domain.table.City;
 import com.store.domain.table.Property;
-import com.store.dto.PropertyRegistry;
-import com.store.error.NotFoundError;
-import com.store.error.NullDataError;
-import com.store.error.PropertyError;
+import com.store.domain.dto.PropertyRegistry;
+import com.store.domain.error.NotFoundError;
+import com.store.domain.error.NullDataError;
+import com.store.domain.error.PropertyError;
 import com.store.infrastructure.config.InfraProperties;
 import com.store.infrastructure.persistence.CityRepository;
 import com.store.infrastructure.persistence.PropertyRepository;
