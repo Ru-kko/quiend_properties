@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Calendar;
 
 @Service
 class PropertyServiceImpl implements PropertyService {
@@ -59,7 +60,7 @@ class PropertyServiceImpl implements PropertyService {
 
         return base;
     }
-    
+
     @Override
     public Property update(UUID id, PropertyRegistry newData) throws PropertyError {
         var originalOpt = propertyRepository.findById(id);
@@ -68,12 +69,13 @@ class PropertyServiceImpl implements PropertyService {
             throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
 
         var original = originalOpt.get();
-        
+
         if (!original.getAvailable() && newData.getPrice() != null && !newData.getPrice().equals(original.getPrice()))
             throw new PropertyError("Cant change the price of a currently rented property", 400, "BadRequest");
-        if (!original.getAvailable() && newData.getLocation() != null && !newData.getLocation().equals(original.getLocation().getCityId()))
+        if (!original.getAvailable() && newData.getLocation() != null
+                && !newData.getLocation().equals(original.getLocation().getCityId()))
             throw new PropertyError("Cant change the location of a currently rented property", 400, "BadRequest");
-        
+
         if (newData.getImage() == null)
             newData.setImage(original.getImg());
         if (newData.getName() == null)
@@ -86,8 +88,6 @@ class PropertyServiceImpl implements PropertyService {
         var modified = transform(newData, original);
 
         modified.setActive(original.getActive());
-
-
 
         return propertyRepository.save(modified);
     }
@@ -108,9 +108,39 @@ class PropertyServiceImpl implements PropertyService {
         return original;
     }
 
+    @Override
+    public void delete(UUID id) throws PropertyError {
+        var originalOpt = propertyRepository.findById(id);
+        if (originalOpt.isEmpty() || !originalOpt.get().getActive())
+            throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
+        
+
+        var original = originalOpt.get();
+        if (!original.getAvailable())
+            throw new PropertyError("Cant delete rented property", 400, "BadRequest");
+
+        var dateCreated = Calendar.getInstance();
+        dateCreated.setTime(original.getDateCreated());
+            
+        var now = Calendar.getInstance();
+        now.set(Calendar.HOUR_OF_DAY, 0);
+        now.set(Calendar.MINUTE, 0);
+        now.set(Calendar.SECOND, 0);
+        now.set(Calendar.MILLISECOND, 0);
+
+        var diff = now.getTime().getTime() - dateCreated.getTime().getTime();
+        if (diff > props.getTime2DeleteProperty())
+            throw new PropertyError("Cant delete a property wtith more thant 1 month", 400, "BadRequest");
+        
+        original.setActive(false);
+
+        propertyRepository.save(original);
+    }
+
     /**
      * Checks if is repeated name error
      * ! this only works on postgre
+     * 
      * @param e
      * @return
      */

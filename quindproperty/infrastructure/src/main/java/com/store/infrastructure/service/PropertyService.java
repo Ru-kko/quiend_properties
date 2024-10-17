@@ -17,4 +17,6 @@ public interface PropertyService {
     Property update(UUID id, PropertyRegistry newData) throws PropertyError;
 
     Property toggleAvailability(UUID id) throws PropertyError;
+
+    void delete(UUID id) throws PropertyError;
 }

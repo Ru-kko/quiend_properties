@@ -263,6 +263,7 @@ public class PropertyServiceImplTest {
     assertEquals(updatedProperty.getAvailable(), fromDb.get("available"));
   }
 
+  // ___________________ Toggle Availability ________________________ 
   @Test
   void testToggleAvailabilityPropertyFound() {
      UUID propertyId = UUID.fromString("48a234c4-ef02-4f96-8a04-82307b1d31a4"); // Luxury Apartment Medellin
@@ -304,5 +305,31 @@ public class PropertyServiceImplTest {
     });
 
     assertEquals(404, exception.getCode());
+  }
+
+  // ___________________ Delete ____________________________________
+  @Test
+  void testDeleteValidProperty() {
+    PropertyRegistry newProperty = new PropertyRegistry("New Apartment", 
+        UUID.fromString("a4b2c9d7-258e-4f2f-a1ad-1c7f5f2a9d75"), "image.jpg", new BigDecimal("2500000.00"));
+
+    Property savedProperty = assertDoesNotThrow(() -> propertyService.save(newProperty));
+    UUID newPropertyId = savedProperty.getPropertyId();
+
+    assertDoesNotThrow(() -> propertyService.delete(newPropertyId));
+
+    var fromDb = jdbcTemplate.queryForObject("SELECT active FROM Property WHERE propertyId = ?",Boolean.class, newPropertyId);
+    assertEquals(false, fromDb);
+  }
+
+  @Test
+  void testDeleteOldProperty() {
+    UUID oldPropertyId = UUID.fromString("48a234c4-ef02-4f96-8a04-82307b1d31a4"); // Luxury Apartment Medellin
+
+    PropertyError exception = assertThrows(PropertyError.class, () -> {
+        propertyService.delete(oldPropertyId);
+    });
+
+    assertEquals(400, exception.getCode());
   }
 }
