@@ -89,7 +89,15 @@ class PropertyServiceImpl implements PropertyService {
 
         modified.setActive(original.getActive());
 
-        return propertyRepository.save(modified);
+        Property response = null;
+        
+        try {
+            response = propertyRepository.save(modified);
+        } catch (DataIntegrityViolationException e) {
+            isDuplicateNameViolation(e);
+        }
+
+        return response;
     }
 
     @Override
