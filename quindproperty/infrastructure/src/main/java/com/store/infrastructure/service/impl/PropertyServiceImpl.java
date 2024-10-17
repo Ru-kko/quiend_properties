@@ -3,6 +3,7 @@ package com.store.infrastructure.service.impl;
 import com.store.domain.table.City;
 import com.store.domain.table.Property;
 import com.store.dto.PropertyRegistry;
+import com.store.error.NotFoundError;
 import com.store.error.NullDataError;
 import com.store.error.PropertyError;
 import com.store.infrastructure.config.InfraProperties;
@@ -11,6 +12,7 @@ import com.store.infrastructure.persistence.PropertyRepository;
 import com.store.infrastructure.service.PropertyService;
 
 import lombok.AllArgsConstructor;
+
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -30,6 +32,8 @@ class PropertyServiceImpl implements PropertyService {
     private PropertyRepository propertyRepository;
     private InfraProperties props;
     private CityRepository cityRepository;
+
+    private static final String NOT_FOUND_MESSAGE_PREF = "Not found a property with id " ;
 
     @Override
     public Page<Property> find(BigDecimal lower, BigDecimal upper, Integer page) {
@@ -65,15 +69,15 @@ class PropertyServiceImpl implements PropertyService {
         var originalOpt = propertyRepository.findById(id);
 
         if (originalOpt.isEmpty() || Boolean.TRUE.equals(!originalOpt.get().getActive()))
-            throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
+            throw new NotFoundError(NOT_FOUND_MESSAGE_PREF + id.toString());
 
         var original = originalOpt.get();
 
         if (Boolean.TRUE.equals(!original.getAvailable() && newData.getPrice() != null) && !newData.getPrice().equals(original.getPrice()))
-            throw new PropertyError("Cant change the price of a currently rented property", 400, "BadRequest");
+            throw PropertyError.badRequest("Cant change the price of a currently rented property", null);
         if (!original.getAvailable() && newData.getLocation() != null
                 && !newData.getLocation().equals(original.getLocation().getCityId()))
-            throw new PropertyError("Cant change the location of a currently rented property", 400, "BadRequest");
+            throw PropertyError.badRequest("Cant change the location of a currently rented property", null);
 
         if (newData.getImage() == null)
             newData.setImage(original.getImg());
@@ -104,7 +108,7 @@ class PropertyServiceImpl implements PropertyService {
         var originalOpt = propertyRepository.findById(id);
 
         if (originalOpt.isEmpty() || Boolean.TRUE.equals(!originalOpt.get().getActive()))
-            throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
+            throw new NotFoundError(NOT_FOUND_MESSAGE_PREF + id.toString());
 
         var original = originalOpt.get();
 
@@ -119,12 +123,12 @@ class PropertyServiceImpl implements PropertyService {
     public void delete(UUID id) throws PropertyError {
         var originalOpt = propertyRepository.findById(id);
         if (originalOpt.isEmpty() || Boolean.TRUE.equals(!originalOpt.get().getActive()))
-            throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
+            throw new NotFoundError(NOT_FOUND_MESSAGE_PREF + id.toString());
         
 
         var original = originalOpt.get();
         if (Boolean.FALSE.equals(original.getAvailable()))
-            throw new PropertyError("Cant delete rented property", 400, "BadRequest");
+            throw PropertyError.badRequest("Cant delete rented property", null);
 
         var dateCreated = Calendar.getInstance();
         dateCreated.setTime(original.getDateCreated());
@@ -137,7 +141,7 @@ class PropertyServiceImpl implements PropertyService {
 
         var diff = now.getTime().getTime() - dateCreated.getTime().getTime();
         if (diff > props.getTime2DeleteProperty())
-            throw new PropertyError("Cant delete a property wtith more thant 1 month", 400, "BadRequest");
+            throw PropertyError.badRequest("Cant delete a property wtith more thant 1 month", null);
         
         original.setActive(false);
 
@@ -157,7 +161,7 @@ class PropertyServiceImpl implements PropertyService {
 
         String sqlState = ((org.hibernate.exception.ConstraintViolationException) rootCause).getSQLState();
         if ("23505".equals(sqlState)) {
-            throw new PropertyError("Already exists a property with this name", e, 404, "BadRequest");
+            throw PropertyError.badRequest("Already exists a property with this name", e);
         }
 
         throw e;
@@ -182,14 +186,14 @@ class PropertyServiceImpl implements PropertyService {
 
         Optional<City> cityOpt = cityRepository.findById(dto.getLocation());
         if (cityOpt.isEmpty())
-            throw new PropertyError("Not found city with id " + dto.getLocation().toString(), 404, "NotFound");
+            throw new NotFoundError("Not found city with id " + dto.getLocation().toString());
 
         City city = cityOpt.get();
 
         // * if is in Cali || Bogota price must be greather than 2'000.000
         if ((city.getName().equals("Bogota") || city.getName().equals("Cali"))
                 && dto.getPrice().compareTo(new BigDecimal(2000000)) < 1)
-            throw new PropertyError("Price must be > 2'000.000 in this city", 400, "BadRequest");
+            throw PropertyError.badRequest("Price must be > 2'000.000 in this city", null);
 
         base.setImg(dto.getImage());
         base.setLocation(city);

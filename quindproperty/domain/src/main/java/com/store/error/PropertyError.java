@@ -7,7 +7,6 @@ public class PropertyError extends Exception {
   private final Integer code;
   private final String status;
 
-
   public PropertyError(String message, Integer code, String status) {
     super(message);
     this.code = code;
@@ -18,5 +17,9 @@ public class PropertyError extends Exception {
     super(message, cause);
     this.code = code;
     this.status = status;
+  }
+
+  public static PropertyError badRequest(String message, Throwable cause) {
+    return new PropertyError(message, cause, 400, "BadRequest");
   }
 }
