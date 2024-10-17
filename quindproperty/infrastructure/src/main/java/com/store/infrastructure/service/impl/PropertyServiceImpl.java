@@ -10,6 +10,7 @@ import com.store.infrastructure.persistence.CityRepository;
 import com.store.infrastructure.persistence.PropertyRepository;
 import com.store.infrastructure.service.PropertyService;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -47,6 +48,7 @@ class PropertyServiceImpl implements PropertyService {
         Property base = transform(registry);
 
         base.setActive(true);
+        base.setAvailable(true);
 
         try {
             base = propertyRepository.save(base);
@@ -64,8 +66,8 @@ class PropertyServiceImpl implements PropertyService {
      * @return
      */
     private void isDuplicateNameViolation(DataIntegrityViolationException e) throws PropertyError {
-        Throwable rootCause = e.getRootCause();
-        if (!(rootCause instanceof org.hibernate.exception.ConstraintViolationException)) {
+        Throwable rootCause = e.getCause();
+        if (!(rootCause instanceof ConstraintViolationException)) {
             throw e;
         }
 

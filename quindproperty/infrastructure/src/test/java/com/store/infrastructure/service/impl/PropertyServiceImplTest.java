@@ -1,11 +1,13 @@
 package com.store.infrastructure.service.impl;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.Calendar;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -143,5 +145,43 @@ public class PropertyServiceImplTest {
     assertEquals(dto.getImage(), result.getImg());
     assertEquals(dto.getPrice(), result.getPrice());
     assertEquals("Bogota", result.getLocation().getName());
+  }
+
+  // ____________________ Save ___________________________________
+  @Test
+  void testSaveRepeatedName() {
+    PropertyRegistry repeated = new PropertyRegistry("Luxury Apartment Medellin",
+        UUID.fromString("e9c1a570-dbe4-4a2e-a71e-2fd5a7b7f123"), "image.png", new BigDecimal("100000"));
+
+    assertThrows(PropertyError.class, () -> propertyService.save(repeated));
+  }
+
+  @Test
+  void testSaveValidProperty() {
+    PropertyRegistry newProperty = new PropertyRegistry("New Appartment In Bogota", 
+        UUID.fromString("a4b2c9d7-258e-4f2f-a1ad-1c7f5f2a9d75"), "image.png", new BigDecimal("2500000.00"));
+
+    Property savedProperty = assertDoesNotThrow(() -> propertyService.save(newProperty));
+
+    UUID newPropertyId = savedProperty.getPropertyId();
+    
+    assertNotNull(newPropertyId);
+
+    var fromDb = jdbcTemplate.queryForMap("select * from Property WHERE propertyId = ?", newPropertyId);
+
+    var originalDate = Calendar.getInstance();
+    originalDate.setTime(savedProperty.getDateCreated());
+
+    originalDate.set(Calendar.HOUR_OF_DAY, 0);
+    originalDate.set(Calendar.MINUTE, 0);
+    originalDate.set(Calendar.SECOND, 0);
+    originalDate.set(Calendar.MILLISECOND, 0);
+
+    assertEquals(fromDb.get("dateCreated"), originalDate.getTime());
+    assertEquals(fromDb.get("active"), savedProperty.getActive());
+    assertEquals(fromDb.get("cityId"), savedProperty.getLocation().getCityId());
+    assertEquals(fromDb.get("img"), savedProperty.getImg());
+    assertEquals(fromDb.get("name"), savedProperty.getName());
+    assertEquals(fromDb.get("price"), savedProperty.getPrice()); 
   }
 }
