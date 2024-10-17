@@ -2,6 +2,7 @@ package com.store.infrastructure.service.impl;
 
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -11,14 +12,15 @@ import com.store.domain.Role;
 import com.store.domain.table.User;
 import com.store.dto.UserClaims;
 import com.store.dto.UserRegistry;
+import com.store.error.NotFoundError;
 import com.store.error.NullDataError;
 import com.store.error.PropertyError;
 import com.store.infrastructure.persistence.UserRepository;
 import com.store.infrastructure.service.UserService;
 
 @Service
-public class UserServiceImpl implements UserService {
-  @Autowired
+@AllArgsConstructor(onConstructor = @__(@Autowired))
+class UserServiceImpl implements UserService {
   private UserRepository userRepository;
 
   @Override
@@ -26,7 +28,7 @@ public class UserServiceImpl implements UserService {
     Optional<User> user = userRepository.findByEmail(email);
 
     if (user.isEmpty())
-      throw new PropertyError("Couldnt find an user with email " + email, 404, "NotFound");
+      throw new NotFoundError("Couldnt find an user with email " + email);
 
     if (!user.get().getPassword().equals(chipherPassword))
       throw new PropertyError("Bad credentials", 401, "Unauthorized");
@@ -65,7 +67,7 @@ public class UserServiceImpl implements UserService {
     }
     String sqlState = ((org.hibernate.exception.ConstraintViolationException) rootCause).getSQLState();
     if ("23505".equals(sqlState)) {
-      throw new PropertyError("Already exists an user with this email", e, 404, "BadRequest");
+      throw PropertyError.badRequest("Already exists an user with this email", e);
     }
     throw e;
   }
@@ -80,8 +82,8 @@ public class UserServiceImpl implements UserService {
     if (registry.getEmail() == null || !registry.getEmail().matches(emailRegexp))
       throw new PropertyError("Bad email", 400, "BadRequest");
 
-    if (registry.getLastName() == null)
-      throw new NullDataError("Last name must not be null");
+    if (registry.getFirstName() == null)
+      throw new NullDataError("First name must not be null");
 
     if (registry.getAge() == null || registry.getAge() < 1) // ? should change this use case
       throw new PropertyError("Bad age", 400, "BadRequest");
