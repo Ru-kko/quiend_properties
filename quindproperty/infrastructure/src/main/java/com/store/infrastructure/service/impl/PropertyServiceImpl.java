@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 class PropertyServiceImpl implements PropertyService {
@@ -59,6 +60,38 @@ class PropertyServiceImpl implements PropertyService {
         return base;
     }
     
+    @Override
+    public Property update(UUID id, PropertyRegistry newData) throws PropertyError {
+        var originalOpt = propertyRepository.findById(id);
+
+        if (originalOpt.isEmpty() || !originalOpt.get().getActive())
+            throw new PropertyError("Not found a property with id " + id.toString(), 404, "NotFound");
+
+        var original = originalOpt.get();
+        
+        if (!original.getAvailable() && newData.getPrice() != null && !newData.getPrice().equals(original.getPrice()))
+            throw new PropertyError("Cant change the price of a currently rented property", 400, "BadRequest");
+        if (!original.getAvailable() && newData.getLocation() != null && !newData.getLocation().equals(original.getLocation().getCityId()))
+            throw new PropertyError("Cant change the location of a currently rented property", 400, "BadRequest");
+        
+        if (newData.getImage() == null)
+            newData.setImage(original.getImg());
+        if (newData.getName() == null)
+            newData.setName(original.getName());
+        if (newData.getPrice() == null)
+            newData.setPrice(original.getPrice());
+        if (newData.getLocation() == null)
+            newData.setLocation(original.getLocation().getCityId());
+
+        var modified = transform(newData, original);
+
+        modified.setActive(original.getActive());
+
+
+
+        return propertyRepository.save(modified);
+    }
+
     /**
      * Checks if is repeated name error
      * ! this only works on postgre
@@ -80,7 +113,11 @@ class PropertyServiceImpl implements PropertyService {
     }
 
     Property transform(PropertyRegistry dto) throws PropertyError {
-        Property res = new Property();
+        return transform(dto, new Property());
+    }
+
+    Property transform(PropertyRegistry dto, final Property base) throws PropertyError {
+        Property res = base;
 
         if (dto.getName() == null)
             throw new NullDataError("Not provided name");

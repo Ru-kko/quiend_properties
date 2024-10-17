@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 import java.util.Calendar;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -183,5 +183,81 @@ public class PropertyServiceImplTest {
     assertEquals(fromDb.get("img"), savedProperty.getImg());
     assertEquals(fromDb.get("name"), savedProperty.getName());
     assertEquals(fromDb.get("price"), savedProperty.getPrice()); 
+  }
+
+  // ___________________ Update _________________________________
+  @Test
+  void testUpodateNotFound() {
+    UUID nonExistentId = UUID.randomUUID();
+    PropertyRegistry newData = new PropertyRegistry();
+    PropertyError exception = assertThrows(PropertyError.class, () -> {
+        propertyService.update(nonExistentId, newData);
+    });
+
+    assertEquals(404, exception.getCode());
+  }
+
+  @Test
+  void testUpdatePropertyRentedChangePrice() {
+    UUID rentedPropertyId = UUID.fromString("3a9f2dab-ae3a-437f-aeaa-f0b88a60a3ee"); // Penthouse Bogota
+    PropertyRegistry newData = new PropertyRegistry();
+    newData.setPrice(new BigDecimal(1100000));
+
+    PropertyError exception = assertThrows(PropertyError.class, () -> {
+        propertyService.update(rentedPropertyId, newData);
+    });
+    assertEquals(400, exception.getCode());
+  }
+
+  @Test
+  void testUpdatePropertyRentedChangeLocation() {
+    UUID rentedPropertyId = UUID.fromString("3a9f2dab-ae3a-437f-aeaa-f0b88a60a3ee"); // Penthouse Bogota
+    PropertyRegistry newData = new PropertyRegistry();
+    newData.setLocation(UUID.fromString("c21d6f5e-7b58-4d81-9fc8-91e7c69d6e9a"));
+
+    PropertyError exception = assertThrows(PropertyError.class, () -> {
+      propertyService.update(rentedPropertyId, newData);
+    });
+    assertEquals(400, exception.getCode());
+  }
+
+  @Test
+  void testUpdateAvailablePropertyFullData() {
+    UUID availablePropertyId = UUID.fromString("48a234c4-ef02-4f96-8a04-82307b1d31a4"); // Luxury Apartment Medellin
+    PropertyRegistry newData = new PropertyRegistry();
+    newData.setName("Updated Apartment Medellin");
+    newData.setPrice(new BigDecimal("3500000.00"));
+    newData.setLocation(UUID.fromString("c21d6f5e-7b58-4d81-9fc8-91e7c69d6e9a")); // Cali
+    newData.setImage("newimage.jpg");
+
+    Property updatedProperty = assertDoesNotThrow(() -> propertyService.update(availablePropertyId, newData));
+    assertNotNull(updatedProperty);
+    assertEquals(availablePropertyId, updatedProperty.getPropertyId());
+
+    var fromDb = jdbcTemplate.queryForMap("SELECT * FROM Property WHERE propertyId = ?", updatedProperty.getPropertyId());
+
+    assertEquals(newData.getName(), fromDb.get("name"));
+    assertEquals(newData.getPrice(), fromDb.get("price"));
+    assertEquals(newData.getLocation().toString(), fromDb.get("cityId").toString());
+    assertEquals(newData.getImage(), fromDb.get("img"));
+  }
+
+  @Test
+  void testUpdateAvailablePropertyPartialData() {
+    UUID availablePropertyId = UUID.fromString("48a234c4-ef02-4f96-8a04-82307b1d31a4"); // Luxury Apartment Medellin
+    PropertyRegistry newData = new PropertyRegistry();
+    newData.setName("Updated Apartment Medellin");
+
+    Property updatedProperty = assertDoesNotThrow(() -> propertyService.update(availablePropertyId, newData));
+    assertNotNull(updatedProperty);
+
+    var fromDb = jdbcTemplate.queryForMap("SELECT * FROM Property WHERE propertyId = ?", availablePropertyId);
+
+    assertEquals(newData.getName(), fromDb.get("name"));
+    assertEquals(updatedProperty.getPrice(), fromDb.get("price"));
+    assertEquals(updatedProperty.getLocation().getCityId().toString(), fromDb.get("cityId").toString());
+    assertEquals(updatedProperty.getImg(), fromDb.get("img"));
+    assertEquals(updatedProperty.getActive(), fromDb.get("active"));
+    assertEquals(updatedProperty.getAvailable(), fromDb.get("available"));
   }
 }
