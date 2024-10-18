@@ -10,6 +10,10 @@ import lombok.Getter;
 @Configuration
 @ConfigurationProperties(prefix = "app")
 public class ApplicationConfig {
+  @Value("${app.security.jwt.secret}")
+  private String jwtSecret;
+  @Value("${app.security.jwt.expires}")
+  private Long expiration;
   @Value("${app.property.page-size}")
   private Integer pageSize;
   @Value("${app.property.time2delete:2592000000}")
