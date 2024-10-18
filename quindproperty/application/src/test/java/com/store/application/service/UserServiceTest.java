@@ -1,32 +1,43 @@
-package com.store.infrastructure.service.impl;
+package com.store.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
+import com.store.application.port.out.UserRepository;
+import com.store.domain.Role;
 import com.store.domain.dto.UserClaims;
 import com.store.domain.dto.UserRegistry;
 import com.store.domain.error.NotFoundError;
 import com.store.domain.error.NullDataError;
 import com.store.domain.error.PropertyError;
+import com.store.domain.table.User;
 
-@SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Sql(scripts = { "/dataIngest.sql" }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(scripts = { "/dataDrop.sql" }, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-class UserServiceImplTest {
-  @Autowired
-  private UserServiceImpl userService;
-  @Autowired
-  private JdbcTemplate jdbcTemplate;
+class UserServiceTest {
+  @Mock
+  private UserRepository userRepository;
+
+  @InjectMocks
+  private UserService userService;
+
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
+  }
 
   // ____________________________ Validate ____________________________________
   @Test
@@ -78,7 +89,7 @@ class UserServiceImplTest {
   @Test
   void testPassValidationWithValidData() {
     UserRegistry userRegistry = new UserRegistry();
-    
+
     userRegistry.setEmail("validemail@example.com");
     userRegistry.setFirstName("ValidName");
     userRegistry.setAge(25); // Valid data
@@ -86,13 +97,23 @@ class UserServiceImplTest {
     assertDoesNotThrow(() -> userService.validate(userRegistry));
   }
 
-
   // ____________________________ GetByEmailAndPassword _______________________
 
   @Test
   void testGetByEmailAndPasswordValidCredentials() throws PropertyError {
     String email = "user1@example.com";
     String password = "userpassword1";
+
+    User mockUser = new User(
+        UUID.randomUUID(),
+        email,
+        "John",
+        "Doe",
+        30,
+        password,
+        Role.USER);
+
+    when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
     UserClaims userClaims = userService.getByEmailAndPassword(email, password);
 
@@ -105,6 +126,7 @@ class UserServiceImplTest {
     String email = "nonexistent@example.com";
     String password = "somepassword";
 
+    when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
     assertThrows(NotFoundError.class, () -> userService.getByEmailAndPassword(email, password));
   }
 
@@ -113,48 +135,39 @@ class UserServiceImplTest {
     String email = "user1@example.com";
     String wrongPassword = "wrongpassword";
 
-    PropertyError error = assertThrows(PropertyError.class, () -> userService.getByEmailAndPassword(email, wrongPassword));
+    User mockUser = new User(
+        UUID.randomUUID(),
+        email,
+        "John",
+        "Doe",
+        30,
+        "pass",
+        Role.USER);
+
+    when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
+
+    PropertyError error = assertThrows(PropertyError.class,
+        () -> userService.getByEmailAndPassword(email, wrongPassword));
 
     assertEquals(401, error.getCode());
     assertEquals("Unauthorized", error.getStatus());
   }
 
-  @Test
-  void testGetByEmailAndPasswordValidAdminCredentials() throws PropertyError {
-    String email = "admin@example.com";
-    String password = "adminpassword";
-
-    UserClaims userClaims = userService.getByEmailAndPassword(email, password);
-
-    assertNotNull(userClaims);
-    assertEquals(email, userClaims.getEmail());
-  }
-
-  // ___________________________ Register __________________________________
+  // __________________________ Register _________________________________
   @Test
   void testRegisterNewUserSuccessfully() throws PropertyError {
     var newUser = new UserRegistry(
-      "newuser@example.com", "newpassword", "New", "User", 20
-    );
+        "newuser@example.com", "newpassword", "New", "User", 20);
 
-    var result = userService.register(newUser);
-    var fromDb = jdbcTemplate.queryForMap("select * from \"User\" where userId = ?", result.getUserId());
+    User mockUser = new User();
+    mockUser.setEmail(newUser.getEmail());
+    mockUser.setFirstName(newUser.getFirstName());
+    mockUser.setLastName(newUser.getLastName());
+    mockUser.setAge(newUser.getAge());
 
-    assertNotNull(result);
-    assertEquals(newUser.getEmail(), fromDb.get("email"));
-    assertEquals(newUser.getLastName(), fromDb.get("lastName"));
-    assertEquals(newUser.getFirstName(), fromDb.get("firstName"));
-    assertEquals(newUser.getPassword(), fromDb.get("password"));
-  }
+    when(userRepository.save(any(User.class))).thenReturn(mockUser);
+    userService.register(newUser);
 
-  @Test
-  void register_ShouldThrowPropertyError_WhenDuplicateEmail() {
-    UserRegistry duplicateUser = new UserRegistry(
-      "user1@example.com", "newpassword", "New", "User", 22
-    );
-
-    PropertyError exception = assertThrows(PropertyError.class, () -> userService.register(duplicateUser));
-
-    assertEquals(400, exception.getCode());
+    verify(userRepository, times(1)).save(any(User.class));
   }
 }

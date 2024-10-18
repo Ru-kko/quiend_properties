@@ -1,43 +1,39 @@
-package com.store.infrastructure.service.impl;
+package com.store.application.service;
 
-import com.store.domain.table.City;
-import com.store.domain.table.Property;
+import java.math.BigDecimal;
+import java.util.Calendar;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Service;
+
+import com.store.application.ApplicationConfig;
+import com.store.application.port.in.PropertyUseCase;
+import com.store.application.port.out.CityRepository;
+import com.store.application.port.out.PropertyRepository;
 import com.store.domain.dto.PropertyRegistry;
 import com.store.domain.error.NotFoundError;
 import com.store.domain.error.NullDataError;
 import com.store.domain.error.PropertyError;
-import com.store.infrastructure.config.InfraProperties;
-import com.store.infrastructure.persistence.CityRepository;
-import com.store.infrastructure.persistence.PropertyRepository;
-import com.store.infrastructure.service.PropertyService;
+import com.store.domain.table.City;
+import com.store.domain.table.Property;
 
 import lombok.AllArgsConstructor;
 
-import org.hibernate.exception.ConstraintViolationException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.Calendar;
-
 @Service
-@AllArgsConstructor(onConstructor = @__(@Autowired))
-class PropertyServiceImpl implements PropertyService {
+@AllArgsConstructor
+class PropertyService implements PropertyUseCase {
     private PropertyRepository propertyRepository;
-    private InfraProperties props;
+    private ApplicationConfig props;
     private CityRepository cityRepository;
 
     private static final String NOT_FOUND_MESSAGE_PREF = "Not found a property with id " ;
 
     @Override
     public Page<Property> find(BigDecimal lower, BigDecimal upper, Integer page) {
-        Pageable pageable = PageRequest.of(page, props.getPageSize());
+        PageRequest pageable = PageRequest.of(page, props.getPageSize());
 
         BigDecimal finalLower = lower == null ? BigDecimal.ZERO : lower;
 
@@ -55,11 +51,7 @@ class PropertyServiceImpl implements PropertyService {
         base.setActive(true);
         base.setAvailable(true);
 
-        try {
-            base = propertyRepository.save(base);
-        } catch (DataIntegrityViolationException e) {
-            isDuplicateNameViolation(e);
-        }
+        base = propertyRepository.save(base);
 
         return base;
     }
@@ -75,7 +67,7 @@ class PropertyServiceImpl implements PropertyService {
 
         if (Boolean.TRUE.equals(!original.getAvailable() && newData.getPrice() != null) && !newData.getPrice().equals(original.getPrice()))
             throw PropertyError.badRequest("Cant change the price of a currently rented property", null);
-        if (!original.getAvailable() && newData.getLocation() != null
+        if (Boolean.TRUE.equals(!original.getAvailable() && newData.getLocation() != null)
                 && !newData.getLocation().equals(original.getLocation().getCityId()))
             throw PropertyError.badRequest("Cant change the location of a currently rented property", null);
 
@@ -92,15 +84,8 @@ class PropertyServiceImpl implements PropertyService {
 
         modified.setActive(original.getActive());
 
-        Property response = null;
-        
-        try {
-            response = propertyRepository.save(modified);
-        } catch (DataIntegrityViolationException e) {
-            isDuplicateNameViolation(e);
-        }
 
-        return response;
+        return propertyRepository.save(modified);
     }
 
     @Override
@@ -146,25 +131,6 @@ class PropertyServiceImpl implements PropertyService {
         original.setActive(false);
 
         propertyRepository.save(original);
-    }
-
-    /**
-     * Checks if is repeated name error
-     * ! this only works on postgres
-     * 
-     */
-    private void isDuplicateNameViolation(DataIntegrityViolationException e) throws PropertyError {
-        Throwable rootCause = e.getCause();
-        if (!(rootCause instanceof ConstraintViolationException)) {
-            throw e;
-        }
-
-        String sqlState = ((org.hibernate.exception.ConstraintViolationException) rootCause).getSQLState();
-        if ("23505".equals(sqlState)) {
-            throw PropertyError.badRequest("Already exists a property with this name", e);
-        }
-
-        throw e;
     }
 
     Property transform(PropertyRegistry dto) throws PropertyError {

@@ -1,28 +1,25 @@
-package com.store.infrastructure.service.impl;
+package com.store.application.service;
 
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.store.application.port.in.RentUseCase;
+import com.store.application.port.out.PropertyRepository;
+import com.store.application.port.out.RentRepository;
+import com.store.application.port.out.UserRepository;
 import com.store.domain.dto.CleanProperty;
 import com.store.domain.dto.CleanRent;
 import com.store.domain.dto.UserClaims;
 import com.store.domain.error.NotFoundError;
 import com.store.domain.error.PropertyError;
 import com.store.domain.table.Rent;
-import com.store.infrastructure.persistence.PropertyRepository;
-import com.store.infrastructure.persistence.RentRepository;
-import com.store.infrastructure.persistence.UserRepository;
-import com.store.infrastructure.service.PropertyService;
-import com.store.infrastructure.service.RentService;
-
 
 import lombok.AllArgsConstructor;
 
 @Service
-@AllArgsConstructor(onConstructor = @__(@Autowired))
-public class RentServiceImpl implements RentService {
+@AllArgsConstructor
+class RentService implements RentUseCase {
   private RentRepository rentRepository;
   private UserRepository userRepository;
   private PropertyRepository propertyRepository;
@@ -73,3 +70,4 @@ public class RentServiceImpl implements RentService {
     return res;
   }
 }
+
