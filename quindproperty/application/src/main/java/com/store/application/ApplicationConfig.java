@@ -3,10 +3,12 @@ package com.store.application;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import lombok.Getter;
 
 @Getter
+@Primary
 @Configuration
 @ConfigurationProperties(prefix = "app")
 public class ApplicationConfig {
