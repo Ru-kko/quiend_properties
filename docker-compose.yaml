@@ -15,5 +15,20 @@ services:
       retries: 10
     ports:
       - "5432:5432"
+  server:
+    build: 
+      context: ./quindproperty
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+      - PORT
+    ports: 
+      - "${PORT}:${PORT}"
+    depends_on:
+      db: 
+        condition: service_healthy
 volumes:
   pg-db:
