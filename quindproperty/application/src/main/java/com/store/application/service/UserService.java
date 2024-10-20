@@ -33,15 +33,12 @@ class UserService implements UserUseCase {
 
   @Override
   public UserClaims getByEmailAndPassword(String email, String chipherPassword) throws PropertyError {
-    var user = userRepository.findByEmail(email);
+    var user = this.findByEmail(email);
 
-    if (user.isEmpty())
-      throw new NotFoundError("Couldnt find an user with email " + email);
-
-    if (!user.get().getPassword().equals(chipherPassword))
+    if (!user.getPassword().equals(chipherPassword))
       throw new PropertyError("Bad credentials", 401, "Unauthorized");
 
-    return parse(user.get());
+    return parse(user);
   }
 
   @Override
@@ -79,5 +76,14 @@ class UserService implements UserUseCase {
 
   private UserClaims parse(User user) {
     return new UserClaims(user.getUserId(), user.getEmail(), user.getLastName(), user.getRole());
+  }
+
+  @Override
+  public User findByEmail(String email) throws NotFoundError {
+    var res = userRepository.findByEmail(email);
+    if (res.isEmpty())
+      throw new NotFoundError("User not found with email " + email);
+
+    return res.get();
   }
 }
