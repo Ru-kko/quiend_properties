@@ -1,9 +1,9 @@
 INSERT INTO "User" (userId, email, firstName, lastName, age, password, role) VALUES
-    ('a7b5f905-c5fc-481d-9389-11b4b9e4a123', 'guest1@example.com', 'Guest', 'One', 30, 'password123', 'GUEST'),
-    ('b8d6e716-c7bd-4720-a2db-22c5c7d4b456', 'admin@example.com', 'Admin', 'User', 40, 'adminpassword', 'ADMIN'),
-    ('c9e7f827-d9ce-4b31-b4ec-33d6d9e6c789', 'user1@example.com', 'User', 'One', 25, 'userpassword1', 'USER'),
-    ('d0f8f938-ebdf-4732-b7fa-44e7f8f7d012', 'user2@example.com', 'User', 'Two', 28, 'userpassword2', 'USER'),
-    ('e1f9f938-fdec-4832-b7fa-44e7f8e7d345', 'guest2@example.com', 'Guest', 'Two', 35, 'password456', 'GUEST');
+    ('a7b5f905-c5fc-481d-9389-11b4b9e4a123', 'guest1@example.com', 'Guest', 'One', 30, 'password123encode', 'GUEST'),
+    ('b8d6e716-c7bd-4720-a2db-22c5c7d4b456', 'admin@example.com', 'Admin', 'User', 40, 'adminpasswordencode', 'ADMIN'),
+    ('c9e7f827-d9ce-4b31-b4ec-33d6d9e6c789', 'user1@example.com', 'User', 'One', 25, 'userpassword1encode', 'USER'),
+    ('d0f8f938-ebdf-4732-b7fa-44e7f8f7d012', 'user2@example.com', 'User', 'Two', 28, 'userpassword2encode', 'USER'),
+    ('e1f9f938-fdec-4832-b7fa-44e7f8e7d345', 'guest2@example.com', 'Guest', 'Two', 35, 'password456encode', 'GUEST');
 
 INSERT INTO Property (propertyId, name, cityId, img, price, available, active, dateCreated) VALUES
     ('48a234c4-ef02-4f96-8a04-82307b1d31a4', 'Luxury Apartment Medellin', 'b81e8a80-4375-4b8a-b5cf-12e5699f4cd3', 'img1.jpg', 500000.00, TRUE, TRUE, '2024-01-01'),
