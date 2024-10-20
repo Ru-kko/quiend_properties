@@ -1,6 +1,7 @@
 package com.store.application.service;
 
 import com.store.application.port.in.AuthUseCase;
+import com.store.application.port.in.JWTUseCase;
 import com.store.application.port.in.UserUseCase;
 import com.store.application.port.out.PasswordEncoder;
 import com.store.domain.dto.UserClaims;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class AuthService implements AuthUseCase {
   private UserUseCase userService;
-  private JWTService jwtService;
+  private JWTUseCase jwtService;
   private PasswordEncoder encoder;
 
 
