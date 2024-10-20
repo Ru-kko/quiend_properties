@@ -5,10 +5,13 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import com.store.application.ApplicationConfig;
+import com.store.application.port.out.PasswordEncoder;
 
 @Configuration
 @SpringBootApplication
@@ -19,5 +22,21 @@ import com.store.application.ApplicationConfig;
 public class StoreEntryPoint {
   public static void main(String[] args) {
     SpringApplication.run(StoreEntryPoint.class, args);
+  }
+
+  @Bean
+  PasswordEncoder passwordEncoder() {
+    var encoder = new BCryptPasswordEncoder();
+    return new PasswordEncoder() {
+      @Override
+      public Boolean matches(String password, String chipher) {
+        return encoder.matches(password, chipher);
+      }
+
+      @Override
+      public String encode(String plainPassword) {
+        return encoder.encode(plainPassword);
+      }
+    };
   }
 }
