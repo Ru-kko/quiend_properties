@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.store.application.port.in.UserUseCase;
+import com.store.application.port.out.PasswordEncoder;
 import com.store.application.port.out.UserRepository;
 import com.store.domain.Role;
 import com.store.domain.dto.UserClaims;
@@ -20,6 +21,7 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 class UserService implements UserUseCase {
   private UserRepository userRepository;
+  private PasswordEncoder passwordEncoder;
 
   @Override
   public UserClaims findById(UUID id) throws PropertyError {
@@ -35,7 +37,7 @@ class UserService implements UserUseCase {
   public UserClaims getByEmailAndPassword(String email, String chipherPassword) throws PropertyError {
     var user = this.findByEmail(email);
 
-    if (!user.getPassword().equals(chipherPassword))
+    if (Boolean.FALSE.equals(passwordEncoder.matches(user.getPassword(), chipherPassword)))
       throw new PropertyError("Bad credentials", 401, "Unauthorized");
 
     return parse(user);

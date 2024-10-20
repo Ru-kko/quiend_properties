@@ -29,6 +29,18 @@ public class TestConfiguration {
 
   @Bean
   PasswordEncoder passwordEncoder() {
-    return p -> p.concat("encode");
+    return new PasswordEncoder() {
+
+      @Override
+      public String encode(String plainPassword) {
+        return plainPassword.concat("encode");
+      }
+
+      @Override
+      public Boolean matches(String password, String chipher) {
+        return password.concat("encode").equals(chipher);
+      }
+      
+    };
   }
 }

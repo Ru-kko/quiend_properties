@@ -18,6 +18,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.store.application.port.out.PasswordEncoder;
 import com.store.application.port.out.UserRepository;
 import com.store.domain.Role;
 import com.store.domain.dto.UserClaims;
@@ -30,6 +31,9 @@ import com.store.domain.table.User;
 class UserServiceTest {
   @Mock
   private UserRepository userRepository;
+
+  @Mock
+  private PasswordEncoder passwordEncoder;
 
   @InjectMocks
   private UserService userService;
@@ -113,6 +117,7 @@ class UserServiceTest {
         password,
         Role.USER);
 
+    when(passwordEncoder.matches(password, password)).thenReturn(true);
     when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
     UserClaims userClaims = userService.getByEmailAndPassword(email, password);
@@ -144,6 +149,7 @@ class UserServiceTest {
         "pass",
         Role.USER);
 
+    when(passwordEncoder.matches(wrongPassword, mockUser.getPassword())).thenReturn(false);
     when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
     PropertyError error = assertThrows(PropertyError.class,
