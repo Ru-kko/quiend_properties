@@ -34,10 +34,10 @@ class UserService implements UserUseCase {
   }
 
   @Override
-  public UserClaims getByEmailAndPassword(String email, String chipherPassword) throws PropertyError {
+  public UserClaims getByEmailAndPassword(String email, String plainPassword) throws PropertyError {
     var user = this.findByEmail(email);
 
-    if (Boolean.FALSE.equals(passwordEncoder.matches(user.getPassword(), chipherPassword)))
+    if (Boolean.FALSE.equals(passwordEncoder.matches(plainPassword, user.getPassword())))
       throw new PropertyError("Bad credentials", 401, "Unauthorized");
 
     return parse(user);

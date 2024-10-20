@@ -34,9 +34,8 @@ public class AuthService implements AuthUseCase {
 
   @Override
   public TokenResponse singIn(LoginRequest credentials) throws PropertyError {
-    var chipherPassword = encoder.encode(credentials.getPassword());
 
-    var user = userService.getByEmailAndPassword(credentials.getEmail(), chipherPassword);
+    var user = userService.getByEmailAndPassword(credentials.getEmail(), credentials.getPassword());
 
     return jwtService.buildToken(user);
   }
