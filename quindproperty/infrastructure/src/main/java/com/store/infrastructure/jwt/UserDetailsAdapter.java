@@ -38,7 +38,7 @@ public class UserDetailsAdapter implements UserDetailsService {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-      GrantedAuthority auth = () -> usr.getRole().toString();
+      GrantedAuthority auth = () -> "ROLE_".concat(usr.getRole().toString());
 
       return List.of(auth);
     }
@@ -50,7 +50,7 @@ public class UserDetailsAdapter implements UserDetailsService {
 
     @Override
     public String getUsername() {
-      return usr.getUserId().toString();
+      return usr.getEmail();
     }
   }
   
