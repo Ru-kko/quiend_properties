@@ -1,5 +1,6 @@
 package com.store.infrastructure.jwt;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -11,26 +12,22 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.store.application.port.in.JWTUseCase;
 import com.store.domain.dto.UserClaims;
 
-import java.io.IOException;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import lombok.NonNull;
-
-import java.util.List;
+import lombok.SneakyThrows;
 
 @Component
 @AllArgsConstructor
 public class JWTAuthenticationFilter extends OncePerRequestFilter {
   private final JWTUseCase jwtService;
   private final UserDetailsService userDetailsService;
-
+  
   @Override
+  @SneakyThrows
   protected void doFilterInternal(@NonNull HttpServletRequest req, @NonNull HttpServletResponse res,
-      @NonNull FilterChain filterChain)
-      throws ServletException, IOException {
+      @NonNull FilterChain filterChain) {
 
     String bearerTk = req.getHeader("Authorization");
 
@@ -47,7 +44,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     
     if (data.getEmail().equals(userDetails.getUsername())) {
       UsernamePasswordAuthenticationToken userPassAuthToken = new UsernamePasswordAuthenticationToken(data, null,
-          List.of(() -> data.getRole().toString()));
+          userDetails.getAuthorities());
   
       userPassAuthToken.setDetails(
           new WebAuthenticationDetailsSource().buildDetails(req));

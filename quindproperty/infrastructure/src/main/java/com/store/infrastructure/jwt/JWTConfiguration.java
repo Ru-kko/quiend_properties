@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 import lombok.AllArgsConstructor;
 
 @Configuration
@@ -27,7 +26,8 @@ public class JWTConfiguration {
         .cors(cors -> cors.disable()) // !
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.POST, "/session/**").permitAll()
-            .anyRequest().authenticated())
+            .requestMatchers(HttpMethod.GET, "/properties").permitAll()
+            .anyRequest().hasRole("ADMIN"))
         .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class)
         .userDetailsService(userDetailsService);
 
