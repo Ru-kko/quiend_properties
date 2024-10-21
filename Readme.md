@@ -85,7 +85,7 @@ The project includes **Jacoco** for test coverage reporting. To generate the rep
 mvn clean verify -Pjacoco-report
 ```
 
-Reports will be generated inside the `target/surefire-reports/` directory of each submodule.
+Reports will be generated inside the `target/jacoco.exec` directory of each submodule.
 
 ### Project Architecture
 
